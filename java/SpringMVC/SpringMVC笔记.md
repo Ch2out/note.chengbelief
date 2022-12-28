@@ -1387,7 +1387,9 @@ ResponseEntity用于控制器方法的返回值类型，该控制器方法的返
 
 处理流程简述 自己声明一个自定义响应类型  首先获取文件在服务器的绝对路径  在通过输入流获取文件的btye数组 然创建响应头 为响应头添加返回附加向 和响应状体码 
 出现文件名中文异常 [处理方法](https://blog.csdn.net/liuyaqi1993/article/details/78275396)
+
 ```java
+方式一：
 @RequestMapping("/testDown")
 public ResponseEntity<byte[]> testResponseEntity(HttpSession session) throws IOException {
     //获取ServletContext对象
@@ -1415,6 +1417,37 @@ public ResponseEntity<byte[]> testResponseEntity(HttpSession session) throws IOE
     is.close();
     return responseEntity;
 }
+```
+
+方式二：在img的src会显示出此文件 在浏览器搜索框类则是文件（以附件的形式下载）
+
+```java
+    @RequestMapping("getFile")
+    public void returnFiel(HttpServletResponse response) throws IOException {
+        try {
+            // path是指欲下载的文件的路径。dataTemplatePath是在配置文件中定义的 通过@Value注入的
+            File file = new File("F:\\Users\\chengbelief\\Pictures\\Screenshots\\2.png");
+            // 取得文件名。
+            String filename = file.getName();
+            // 以流的形式下载文件。
+            InputStream fis = new BufferedInputStream(new FileInputStream(file));
+            byte[] buffer = new byte[fis.available()];
+            fis.read(buffer);
+            fis.close();
+            // 清空response
+            response.reset();
+            // 设置response的Header
+            response.addHeader("Content-Disposition", "attachment;filename=" + new String(filename.getBytes()));
+            response.addHeader("Content-Length", "" + file.length());
+            OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+            response.setContentType("application/octet-stream");
+            toClient.write(buffer);
+            toClient.flush();
+            toClient.close();
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+    }
 ```
 
 ### 2、文件上传
